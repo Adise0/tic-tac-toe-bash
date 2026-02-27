@@ -24,41 +24,26 @@ start_client() {
   exec 4>&"${NC[1]}"
 
   printf "✅ Connected\n"
+
+  present_rules "O"
+
   printf "%s\n" "$(encode_message "HELLO" "")" >&4
+  read -p "Press Enter to start the game"
+  printf "%s\n" "$(encode_message "CLIENT_READY" "")" >&4
+  printf "Waiting for server...\n"
 
   while true; do
 
     local server_salt=0
 
     if IFS= read -r -t 0.2 line <&3; then
-      printf "Received: %s\n" "$line"
 
+      printf "Received%s" "$line"
       decode_message "$line"
 
       case $header in
-      OK_HEADER)
-        server_salt=$payload
-        printf "Saved salt: %s\n" "$server_salt"
-
-        read -r -p "User: " user
-        read -r -p "Password: " password
-
-        hashed_password="$(printf "%s" "$password" | sha256sum | cut -d' ' -f1)"
-        hash_salt="$(printf "%s%s" "$hashed_password" "$server_salt" | sha256sum | cut -d' ' -f1)"
-
-        printf '%s\n' "$(encode_message "AUTH" "$user:$hash_salt")" >&4
-        ;;
-
-      KO_FORMAT)
-        printf "Invalid format!\n"
-        ;;
-
-      KO_AUTH)
-        printf "Invalid auth!\n"
-        ;;
-
-      OK_AUTH)
-        printf "Logged in!\n"
+      START)
+        print_map
         ;;
       esac
 

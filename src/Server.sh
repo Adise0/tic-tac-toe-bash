@@ -14,6 +14,12 @@ start_server() {
   printf "Listening on %s:%s\n" "$ip" "$port"
   printf "(Waiting for clients...)\n"
 
+  present_rules "X"
+
+  local waiting_said=0
+
+  exec 9</dev/tty
+
   while ((!SHUTTING_DOWN)); do
     coproc NC { nc -l "$port" 2>/dev/null; }
     nc_pid=$NC_PID
@@ -26,48 +32,99 @@ start_server() {
     local kill_conn=0
     local hash_bd="b221d9dbb083a7f33428d7c2a3c3198ae925614d70210e28716ccaa7cd4ddb79"
     local salt=0
+    local old_row=1
+    local old_col=1
+    local current_row=1
+    local current_col=1
+    set_tile $current_row $current_col "X"
+
+    if ((!connected && !waiting_said)); then
+      printf "Waiting for clients...\n"
+      waiting_said=1
+    fi
 
     while IFS= read -r line <&3; do
       if ((connected == 0)); then
         printf "Client connected\n"
+        printf "Waiting for client to be ready!\n"
         connected=1
+        continue
       fi
 
-      printf "Received: %s\n" "$line"
       decode_message "$line"
 
-      if ((hello_done == 0)); then
-        if [[ $header != "HELLO" ]]; then
-          printf '%s\n' "$(encode_message "KO_HEADER" "")" >&4
-          sleep 0.05
-          kill_conn=1
-          break
-        else
-          hello_done=1
-          salt=$((RANDOM % 10))
-          printf '%s\n' "$(encode_message "OK_HEADER" "$salt")" >&4
-        fi
-      fi
-
       case $header in
-      AUTH)
-        if [[ $payload =~ ^([^:]+):([^:]+)$ ]]; then
-          user="${BASH_REMATCH[1]}"
-          client_hash="${BASH_REMATCH[2]}"
+      CLIENT_READY)
+        printf "Client is ready!\n"
 
-          local hash_salt=$(printf "%s%s" "$hash_bd" "$salt" | sha256sum | cut -d' ' -f1)
+        read -p "Press Enter to start the game!"
 
-          if [ "$client_hash" != "$hash_salt" ]; then
-            printf '%s\n' "$(encode_message "KO_AUTH" "")" >&4
-            kill_conn=1
-            break
+        printf "%s\n" "$(encode_message "START" "")" >&4
+
+        print_map
+        while true; do
+          read -rsN1 key <&9
+
+          if [[ $key == $'\e' ]]; then
+            read -rsN2 -t 0.05 rest <&9 || rest=''
+            key+="$rest"
           fi
-          printf '%s\n' "$(encode_message "OK_AUTH" "")" >&4
-        else
-          printf '%s\n' "$(encode_message "KO_FORMAT" "")" >&4
-          kill_conn=1
-          break
-        fi
+
+          case "$key" in
+          $'\e[A' | $'\eOA')
+            if (($current_col == 0)); then continue; fi
+            old_col=$current_col
+            current_col=$(($current_col - 1))
+
+            set_tile $current_row $old_col " "
+            set_tile $current_row $current_col "X"
+
+            printf "%s\n" "$(encode_message "MOVE_Y" "$current_col")" >&4
+            print_map
+            ;;
+          $'\e[B' | $'\eOB')
+            if (($current_col == 2)); then continue; fi
+            old_col=$current_col
+            current_col=$(($current_col + 1))
+
+            set_tile $current_row $old_col " "
+            set_tile $current_row $current_col "X"
+
+            printf "%s\n" "$(encode_message "MOVE_Y" "$current_col")" >&4
+            print_map
+            ;;
+          $'\e[D' | $'\eOD')
+            if (($current_row == 0)); then continue; fi
+            old_row=$current_row
+            current_row=$(($current_row - 1))
+
+            set_tile $old_row $current_col " "
+            set_tile $current_row $current_col "X"
+
+            printf "%s\n" "$(encode_message "MOVE_X" "$current_row")" >&4
+            print_map
+            ;;
+
+          $'\e[C' | $'\eOC')
+            if (($current_row == 2)); then continue; fi
+            old_row=$current_row
+            current_row=$(($current_row + 1))
+
+            set_tile $old_row $current_col " "
+            set_tile $current_row $current_col "X"
+
+            printf "%s\n" "$(encode_message "MOVE_X" "$current_row")" >&4
+            print_map
+            ;;
+          $'\n' | $'\r')
+            printf "%s\n" "$(encode_message "SET" "")" >&4
+            break
+            ;;
+          '')
+            continue
+            ;;
+          esac
+        done
         ;;
       esac
 

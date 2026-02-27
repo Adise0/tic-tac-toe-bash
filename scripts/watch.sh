@@ -62,5 +62,5 @@ watchexec -w src -e sh -r \
 
     printf "[Watcher] Change detected\n"
 
-    exec bash -lc "source src/Logish.sh"
+    exec bash -lc "source src/Tic-Tac-Toe.sh"
   '
