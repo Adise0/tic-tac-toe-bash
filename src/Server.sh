@@ -92,6 +92,8 @@ start_server() {
         current_x=$x
         current_y=$y
 
+        set_tile "$current_x" "$current_y" "X"
+
         print_map 1
         turn "X"
         ;;

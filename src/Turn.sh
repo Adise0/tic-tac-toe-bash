@@ -17,8 +17,19 @@ turn() {
       if ((current_y == 0)); then
         continue
       fi
+
+      for ((y = $current_y; y >= -1; y--)); do
+        printf "Checking: %s\n" "$y"
+        if [[ "$(get_tile "$current_x" "$y")" == " " ]]; then
+          break
+        fi
+      done
+      printf "Found free: %s\n" "$y"
+
+      if [[ $y < 0 ]]; then continue; fi
+
       old_y=$current_y
-      current_y=$((current_y - 1))
+      current_y=$y
 
       set_tile "$current_x" "$old_y" " "
       set_tile "$current_x" "$current_y" "$type"
@@ -31,8 +42,17 @@ turn() {
       if ((current_y == rows - 1)); then
         continue
       fi
+
+      for ((y = $current_y; y <= $rows; y++)); do
+        if [[ "$(get_tile "$current_x" "$y")" == " " ]]; then
+          break
+        fi
+      done
+
+      if ((y > rows - 1)); then continue; fi
+
       old_y=$current_y
-      current_y=$((current_y + 1))
+      current_y=$y
 
       set_tile "$current_x" "$old_y" " "
       set_tile "$current_x" "$current_y" "$type"
@@ -45,8 +65,17 @@ turn() {
       if ((current_x == 0)); then
         continue
       fi
+
+      for ((x = $current_x; x >= -1; x--)); do
+        if [[ "$(get_tile "$x" "$current_y")" == " " ]]; then
+          break
+        fi
+      done
+
+      if [[ $x < 0 ]]; then continue; fi
+
       old_x=$current_x
-      current_x=$((current_x - 1))
+      current_x=$x
 
       set_tile "$old_x" "$current_y" " "
       set_tile "$current_x" "$current_y" "$type"
@@ -59,8 +88,17 @@ turn() {
       if ((current_x == cols - 1)); then
         continue
       fi
+
+      for ((x = $current_x; x <= $cols; x++)); do
+        if [[ "$(get_tile "$x" "$current_y")" == " " ]]; then
+          break
+        fi
+      done
+
+      if ((x > cols - 1)); then continue; fi
+
       old_x=$current_x
-      current_x=$((current_x + 1))
+      current_x=$x
 
       set_tile "$old_x" "$current_y" " "
       set_tile "$current_x" "$current_y" "$type"
@@ -85,6 +123,10 @@ turn() {
       old_y=$y
       current_x=$x
       current_y=$y
+
+      [[ $type == "X" ]] && mark="O" || mark="X"
+
+      set_tile "$current_x" "$current_y" "$mark"
 
       printf "%s\n" "$(encode_message "SET" "$x $y")" >&4
       print_map 0

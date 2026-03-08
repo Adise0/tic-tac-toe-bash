@@ -77,6 +77,8 @@ start_client() {
         current_x=$x
         current_y=$y
 
+        set_tile "$current_x" "$current_y" "O"
+
         print_map 1
         turn "O"
         ;;
