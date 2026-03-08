@@ -38,6 +38,7 @@ trap cleanup_all EXIT INT TERM
 source "src/utils/Map.sh"
 source "src/utils/Messages.sh"
 source "src/utils/Prompt.sh"
+source "src/utils/GetFreeSpot.sh"
 source "src/Client.sh"
 source "src/Server.sh"
 source "src/PresentRules.sh"

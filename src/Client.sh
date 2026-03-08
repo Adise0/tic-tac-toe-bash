@@ -70,7 +70,16 @@ start_client() {
         ;;
 
       SET)
-        # TODO: Get available spot
+        read -r x y <<<"$(get_free_spot)"
+
+        if [[ $x == -1 ]]; then
+          #TODO: End game "DRAW"
+          break
+        fi
+
+        current_x=$x
+        current_y=$y
+
         print_map 1
         turn "O"
         ;;
