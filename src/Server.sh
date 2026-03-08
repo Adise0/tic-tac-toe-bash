@@ -97,6 +97,16 @@ start_server() {
         print_map 1
         turn "X"
         ;;
+      END)
+        print_map 0
+        if [[ $payload == "DRAW" ]]; then
+          end_game "DRAW"
+          break
+        fi
+
+        end_game "LOSS"
+        break
+        ;;
       esac
 
       ((SHUTTING_DOWN)) && break

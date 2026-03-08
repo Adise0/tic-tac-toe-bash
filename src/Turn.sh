@@ -19,15 +19,12 @@ turn() {
       fi
 
       for ((y = $current_y; y >= -1; y--)); do
-        printf "Checking: %s\n" "$y"
         if [[ "$(get_tile "$current_x" "$y")" == " " ]]; then
           break
         fi
       done
-      printf "Found free: %s\n" "$y"
 
-      if [[ $y < 0 ]]; then continue; fi
-
+      if ((y < 0)); then continue; fi
       old_y=$current_y
       current_y=$y
 
@@ -72,7 +69,7 @@ turn() {
         fi
       done
 
-      if [[ $x < 0 ]]; then continue; fi
+      if ((x < 0)); then continue; fi
 
       old_x=$current_x
       current_x=$x
@@ -111,17 +108,17 @@ turn() {
 
       if (("$(check_win)")); then
         print_map 1
-        end_game "WIN"
         printf "%s\n" "$(encode_message "END" "WIN-$type")" >&4
+        end_game "WIN"
         break
       fi
 
       read -r x y <<<"$(get_free_spot)"
       if [[ $x == -1 ]]; then
         print_map 1
+        printf "%s\n" "$(encode_message "END" "DRAW")" >&4
         end_game "DRAW"
 
-        printf "%s\n" "$(encode_message "END" "DRAW")" >&4
         break
       fi
 

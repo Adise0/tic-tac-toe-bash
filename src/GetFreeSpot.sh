@@ -2,8 +2,8 @@
 set -euo pipefail
 
 get_free_spot() {
-  for ((y = 0; y < 3; y++)); do
-    for ((x = 0; x < 3; x++)); do
+  for ((y = 0; y < rows; y++)); do
+    for ((x = 0; x < cols; x++)); do
       if [[ "$(get_tile "$x" "$y")" == " " ]]; then
         echo "$x $y"
         return 0
