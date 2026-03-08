@@ -29,7 +29,9 @@ start_client() {
   present_rules "O"
 
   printf "%s\n" "$(encode_message "HELLO" "")" >&4
+  flush_input
   read -p "Press Enter to start the game"
+  flush_input
   printf "%s\n" "$(encode_message "CLIENT_READY" "")" >&4
   printf "Waiting for server...\n"
 
@@ -81,6 +83,16 @@ start_client() {
 
         print_map 1
         turn "O"
+        ;;
+      END)
+        print_map 0
+        if [[ $payload == "DRAW" ]]; then
+          end_game "DRAW"
+          break
+        fi
+
+        end_game "LOSS"
+        break
         ;;
       esac
 

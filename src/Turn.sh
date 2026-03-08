@@ -3,7 +3,7 @@ set -euo pipefail
 
 turn() {
   type=$1
-
+  while read -r -t 0.01 _ <&9; do :; done
   while true; do
     read -rsN1 key <&9
 
@@ -109,13 +109,19 @@ turn() {
 
     $'\n' | $'\r')
 
-      #TODO: Check victory
+      if (("$(check_win)")); then
+        print_map 1
+        end_game "WIN"
+        printf "%s\n" "$(encode_message "END" "WIN-$type")" >&4
+        break
+      fi
 
       read -r x y <<<"$(get_free_spot)"
       if [[ $x == -1 ]]; then
-        #TODO: End game "DRAW"
+        print_map 1
+        end_game "DRAW"
 
-        printf "%s\n" "$(encode_message "END" "draw")" >&4
+        printf "%s\n" "$(encode_message "END" "DRAW")" >&4
         break
       fi
 

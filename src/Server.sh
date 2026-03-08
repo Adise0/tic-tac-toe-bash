@@ -58,7 +58,7 @@ start_server() {
       case $header in
       CLIENT_READY)
         printf "Client is ready!\n"
-
+        flush_input
         read -p "Press Enter to start the game!"
 
         printf "%s\n" "$(encode_message "START" "")" >&4

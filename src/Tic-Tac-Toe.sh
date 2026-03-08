@@ -38,12 +38,15 @@ trap cleanup_all EXIT INT TERM
 source "src/utils/Map.sh"
 source "src/utils/Messages.sh"
 source "src/utils/Prompt.sh"
-source "src/utils/GetFreeSpot.sh"
+source "src/utils/FlushInput.sh"
+source "src/GetFreeSpot.sh"
+source "src/CheckWin.sh"
 source "src/Client.sh"
 source "src/Server.sh"
 source "src/PresentRules.sh"
 source "src/PrintMap.sh"
 source "src/Turn.sh"
+source "src/EndGame.sh"
 
 type=$(prompt "Choose an option:" "Client" "Server")
 
