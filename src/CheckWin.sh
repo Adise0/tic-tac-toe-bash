@@ -28,6 +28,7 @@ check_win() {
     return 0
   fi
 
+  value=$(get_tile 2 0)
   if [[ $value != " " && $(get_tile 1 1) == "$value" && $(get_tile 0 2) == "$value" ]]; then
     echo 1
     return 0
