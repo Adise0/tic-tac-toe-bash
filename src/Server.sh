@@ -85,7 +85,13 @@ start_server() {
         print_map 0
         ;;
       SET)
-        # TODO: Get available spot
+        read -r x y <<<"$payload"
+
+        old_x=$x
+        old_y=$y
+        current_x=$x
+        current_y=$y
+
         print_map 1
         turn "X"
         ;;

@@ -70,13 +70,10 @@ start_client() {
         ;;
 
       SET)
-        read -r x y <<<"$(get_free_spot)"
+        read -r x y <<<"$payload"
 
-        if [[ $x == -1 ]]; then
-          #TODO: End game "DRAW"
-          break
-        fi
-
+        old_x=$x
+        old_y=$y
         current_x=$x
         current_y=$y
 

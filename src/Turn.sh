@@ -70,7 +70,23 @@ turn() {
       ;;
 
     $'\n' | $'\r')
-      printf "%s\n" "$(encode_message "SET" "")" >&4
+
+      #TODO: Check victory
+
+      read -r x y <<<"$(get_free_spot)"
+      if [[ $x == -1 ]]; then
+        #TODO: End game "DRAW"
+
+        printf "%s\n" "$(encode_message "END" "draw")" >&4
+        break
+      fi
+
+      old_x=$x
+      old_y=$y
+      current_x=$x
+      current_y=$y
+
+      printf "%s\n" "$(encode_message "SET" "$x $y")" >&4
       print_map 0
       break
       ;;
