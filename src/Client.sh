@@ -22,6 +22,7 @@ start_client() {
 
   exec 3<&"${NC[0]}"
   exec 4>&"${NC[1]}"
+  exec 9</dev/tty
 
   printf "✅ Connected\n"
 
@@ -32,9 +33,14 @@ start_client() {
   printf "%s\n" "$(encode_message "CLIENT_READY" "")" >&4
   printf "Waiting for server...\n"
 
-  while true; do
+  local old_x=1
+  local old_y=1
+  local current_x=1
+  local current_y=1
 
-    local server_salt=0
+  set_tile $current_x $current_y "X"
+
+  while true; do
 
     if IFS= read -r -t 0.2 line <&3; then
 
@@ -43,20 +49,41 @@ start_client() {
 
       case $header in
       START)
-        print_map
+        print_map 0
+        ;;
+      MOVE_X)
+        old_x=$current_x
+        current_x=$payload
+
+        set_tile "$old_x" "$current_y" " "
+        set_tile "$current_x" "$current_y" "X"
+        print_map 0
+        ;;
+
+      MOVE_Y)
+        old_y=$current_y
+        current_y=$payload
+
+        set_tile "$current_x" "$old_y" " "
+        set_tile "$current_x" "$current_y" "X"
+        print_map 0
+        ;;
+
+      SET)
+        # TODO: Get available spot
+        print_map 1
+        turn "O"
         ;;
       esac
 
       continue
     fi
 
-    # If nc died, we're done
     if ! kill -0 "$nc_pid" 2>/dev/null; then
       printf "❌ Disconnected (nc exited)\n" >&2
       break
     fi
 
-    # If nc is alive but no ESTABLISHED socket -> connection is gone; nc is just stuck
     if ! ss -Htnp 2>/dev/null | grep -F "pid=$nc_pid" | grep -q ESTAB; then
       printf "❌ Disconnected (socket gone; killing stuck nc)\n" >&2
       kill "$nc_pid" 2>/dev/null || true
@@ -64,13 +91,8 @@ start_client() {
     fi
   done
 
-  # cleanup fds
   exec 3<&- 4>&-
-
-  # Wait for *either* the reader or nc to exit
   wait -n "$nc_pid" 2>/dev/null || true
-
-  # Cleanup
   kill "$nc_pid" 2>/dev/null || true
   exec 3<&- 4>&-
 }

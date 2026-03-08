@@ -42,6 +42,7 @@ source "src/Client.sh"
 source "src/Server.sh"
 source "src/PresentRules.sh"
 source "src/PrintMap.sh"
+source "src/Turn.sh"
 
 type=$(prompt "Choose an option:" "Client" "Server")
 

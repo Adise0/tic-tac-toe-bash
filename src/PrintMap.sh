@@ -2,6 +2,7 @@
 set -euo pipefail
 
 print_map() {
+  my_turn=$1
   clear
 
   printf "%s\n" "         |         |         "
@@ -15,4 +16,12 @@ print_map() {
   printf "%s\n" "         |         |         "
   printf "%s\n" "   $(get_tile 0 2)     |    $(get_tile 1 2)    |    $(get_tile 2 2)    "
   printf "%s\n" "         |         |         "
+
+  if ((my_turn)); then
+    printf "\n\nMove with the arrow keys\n"
+    printf "Press ENTER to confirm position\n"
+  else
+    printf "\n\nIt's not your turn!"
+  fi
+
 }

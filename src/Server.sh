@@ -32,11 +32,13 @@ start_server() {
     local kill_conn=0
     local hash_bd="b221d9dbb083a7f33428d7c2a3c3198ae925614d70210e28716ccaa7cd4ddb79"
     local salt=0
-    local old_row=1
-    local old_col=1
-    local current_row=1
-    local current_col=1
-    set_tile $current_row $current_col "X"
+
+    local old_x=1
+    local old_y=1
+    local current_x=1
+    local current_y=1
+
+    set_tile $current_x $current_y "X"
 
     if ((!connected && !waiting_said)); then
       printf "Waiting for clients...\n"
@@ -61,70 +63,31 @@ start_server() {
 
         printf "%s\n" "$(encode_message "START" "")" >&4
 
-        print_map
-        while true; do
-          read -rsN1 key <&9
+        print_map 1
+        turn "X"
+        ;;
 
-          if [[ $key == $'\e' ]]; then
-            read -rsN2 -t 0.05 rest <&9 || rest=''
-            key+="$rest"
-          fi
+      MOVE_X)
+        old_x=$current_x
+        current_x=$payload
 
-          case "$key" in
-          $'\e[A' | $'\eOA')
-            if (($current_col == 0)); then continue; fi
-            old_col=$current_col
-            current_col=$(($current_col - 1))
+        set_tile "$old_x" "$current_y" " "
+        set_tile "$current_x" "$current_y" "O"
+        print_map 0
+        ;;
 
-            set_tile $current_row $old_col " "
-            set_tile $current_row $current_col "X"
+      MOVE_Y)
+        old_y=$current_y
+        current_y=$payload
 
-            printf "%s\n" "$(encode_message "MOVE_Y" "$current_col")" >&4
-            print_map
-            ;;
-          $'\e[B' | $'\eOB')
-            if (($current_col == 2)); then continue; fi
-            old_col=$current_col
-            current_col=$(($current_col + 1))
-
-            set_tile $current_row $old_col " "
-            set_tile $current_row $current_col "X"
-
-            printf "%s\n" "$(encode_message "MOVE_Y" "$current_col")" >&4
-            print_map
-            ;;
-          $'\e[D' | $'\eOD')
-            if (($current_row == 0)); then continue; fi
-            old_row=$current_row
-            current_row=$(($current_row - 1))
-
-            set_tile $old_row $current_col " "
-            set_tile $current_row $current_col "X"
-
-            printf "%s\n" "$(encode_message "MOVE_X" "$current_row")" >&4
-            print_map
-            ;;
-
-          $'\e[C' | $'\eOC')
-            if (($current_row == 2)); then continue; fi
-            old_row=$current_row
-            current_row=$(($current_row + 1))
-
-            set_tile $old_row $current_col " "
-            set_tile $current_row $current_col "X"
-
-            printf "%s\n" "$(encode_message "MOVE_X" "$current_row")" >&4
-            print_map
-            ;;
-          $'\n' | $'\r')
-            printf "%s\n" "$(encode_message "SET" "")" >&4
-            break
-            ;;
-          '')
-            continue
-            ;;
-          esac
-        done
+        set_tile "$current_x" "$old_y" " "
+        set_tile "$current_x" "$current_y" "O"
+        print_map 0
+        ;;
+      SET)
+        # TODO: Get available spot
+        print_map 1
+        turn "X"
         ;;
       esac
 
